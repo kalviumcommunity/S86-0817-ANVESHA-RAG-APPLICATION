@@ -33,3 +33,10 @@ Consistent messages make the history clear and enable automated changelog genera
 - Every feature or fix starts with an issue.
 - Issues include an action-oriented title, context, acceptance criteria, labels, and an assignee.
 - Issues are closed when the corresponding pull request is merged.
+
+## Contribution Checklist
+
+1. Pull the latest `main` branch and create a named feature branch.
+2. Link the branch and pull request to an issue.
+3. Run the relevant checks locally and describe the results in the pull request.
+4. Address review feedback, obtain approval, and merge only after checks pass.
