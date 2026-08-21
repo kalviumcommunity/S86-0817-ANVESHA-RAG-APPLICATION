@@ -40,3 +40,7 @@ Consistent messages make the history clear and enable automated changelog genera
 2. Link the branch and pull request to an issue.
 3. Run the relevant checks locally and describe the results in the pull request.
 4. Address review feedback, obtain approval, and merge only after checks pass.
+
+## Issue and Pull Request Quality
+
+Issue titles use an action verb and identify the outcome, for example, "Create data quality report for incoming datasets". Each issue explains why the work matters and defines what done means. Pull requests summarize the implementation, testing, and related issue so a reviewer can evaluate the change in context.
