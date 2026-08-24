@@ -9,11 +9,18 @@ from document_loader import LoadedDocument, load_documents
 
 @dataclass(frozen=True)
 class Chunk:
-    """A retrievable text segment with its source and position."""
+    """A retrievable text segment paired with citation metadata."""
 
-    source: str
-    index: int
     text: str
+    metadata: dict[str, str | int | None]
+
+    @property
+    def source(self) -> str:
+        return str(self.metadata["source"])
+
+    @property
+    def index(self) -> int:
+        return int(self.metadata["chunk_index"])
 
 
 def fixed_chunks(text: str, size: int = 500, overlap: int = 50) -> list[str]:
@@ -31,9 +38,22 @@ def paragraph_chunks(text: str) -> list[str]:
     return [paragraph.strip() for paragraph in text.split("\n\n") if paragraph.strip()]
 
 
-def add_metadata(source: str, chunks: list[str]) -> list[Chunk]:
-    """Attach stable source and zero-based position metadata to chunks."""
-    return [Chunk(source=source, index=index, text=text) for index, text in enumerate(chunks)]
+def add_metadata(source: str, chunks: list[tuple[str, int]]) -> list[Chunk]:
+    """Attach source, position, and character offsets to chunks."""
+    return [
+        Chunk(
+            text=text,
+            metadata={
+                "source": source,
+                "chunk_index": index,
+                "char_start": start,
+                "char_end": start + len(text),
+                "page": None,
+                "section": None,
+            },
+        )
+        for index, (text, start) in enumerate(chunks)
+    ]
 
 
 def chunk_document(
@@ -44,9 +64,20 @@ def chunk_document(
 ) -> list[Chunk]:
     """Chunk one loaded document using the selected strategy."""
     if strategy == "fixed":
-        chunks = fixed_chunks(document.text, size=size, overlap=overlap)
+        raw_chunks = fixed_chunks(document.text, size=size, overlap=overlap)
+        step = size - overlap
+        chunks = [
+            (chunk, start)
+            for index, chunk in enumerate(raw_chunks)
+            for start in [index * step]
+        ]
     elif strategy == "paragraph":
-        chunks = paragraph_chunks(document.text)
+        chunks = []
+        search_start = 0
+        for paragraph in paragraph_chunks(document.text):
+            start = document.text.find(paragraph, search_start)
+            chunks.append((paragraph, start))
+            search_start = start + len(paragraph)
     else:
         raise ValueError(f"unsupported chunking strategy: {strategy}")
     return add_metadata(document.source, chunks)
